@@ -10,7 +10,9 @@ def multiclass_nms(multi_bboxes,
                    max_num=-1,
                    score_factors=None,
                    roi_feats = None, # 新加入的参数   为了得到预测框所对应的map
-                   rois = None
+                   rois = None,
+                   bbox_pred = None,
+                   cls_score = None
                    ):
     """NMS for multi-class bboxes.
 
@@ -67,13 +69,15 @@ def multiclass_nms(multi_bboxes,
     # 过滤低分数的框后保留对应的roi_feats、roi
     '''
     i = 0
-    roi_idns = [] # 保留此索引所对应的行
+    idns = [] # 保留此索引所对应的行
     for one_row in valid_mask:
         if(one_row[0] == True):
-            roi_idns.append(i)
+            idns.append(i)
             i = i + 1
-    filter_low_score_roi_feats = roi_feats[roi_idns]
-    filter_low_score_rois = rois[roi_idns]
+    filter_low_score_roi_feats = roi_feats[idns]
+    filter_low_score_rois = rois[idns]
+    filter_low_score_bbox_pred = bbox_pred[idns]
+    filter_low_score_cls_score = cls_score[idns]
     '''
     *********
     '''
@@ -128,9 +132,13 @@ def multiclass_nms(multi_bboxes,
     bboxes = bboxes[keep]
     scores = dets[:, -1]  # soft_nms will modify scores
     labels = labels[keep]
+
     # 为了创建引用
     final_roi_feats = filter_low_score_roi_feats
     final_rois = filter_low_score_rois
+    final_bbox_pred = filter_low_score_bbox_pred
+    final_cls_score = filter_low_score_cls_score
+
     if keep.size(0) > max_num:
         # 保存前 max_num个框
         _, inds = scores.sort(descending=True)
@@ -140,12 +148,23 @@ def multiclass_nms(multi_bboxes,
         labels = labels[inds]
         final_roi_feats = filter_low_score_roi_feats[inds]
         final_rois = filter_low_score_rois[inds]
+        final_bbox_pred = filter_low_score_bbox_pred[inds]
+        final_cls_score = filter_low_score_cls_score[inds]
+
+
 
     # 保存张量
-    save_path = "/content/mmdetection/Z108_filter_roi_feats.pt"
+    root_path = "/content/mmdetection/"
+    picture_name = "Z108"
+    save_path = root_path + picture_name + "_filter_final_roi_feats.pt"
     torch.save(final_roi_feats,save_path)
-    save_path = "/content/mmdetection/Z108_filter_rois_filter.pt"
+    save_path = root_path + picture_name + "_filter_final_rois.pt"
     torch.save(final_rois,save_path)
+    save_path = root_path + picture_name + "_filter_final_bbox_pred.pt"
+    torch.save(final_bbox_pred,save_path)
+    save_path = root_path + picture_name + "_filter_final_cls_score.pt"
+    torch.save(final_cls_score,save_path)
+
 
     print()
     print("------------------------------------bbox_nms.py  2222---------------------------------")
