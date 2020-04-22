@@ -8,8 +8,10 @@ def multiclass_nms(multi_bboxes,
                    score_thr,
                    nms_cfg,
                    max_num=-1,
+                   score_factors=None,
                    roi_feats = None, # 新加入的参数   为了得到预测框所对应的map
-                   score_factors=None):
+                   rois = None
+                   ):
     """NMS for multi-class bboxes.
 
     Args:
@@ -61,8 +63,8 @@ def multiclass_nms(multi_bboxes,
     bboxes = bboxes[valid_mask]
 
     '''
-    *********此处自己加上的
-    # 保留对应的roi_feats
+    *********此处自己加上的  
+    # 过滤低分数的框后保留对应的roi_feats、roi
     '''
     i = 0
     roi_idns = [] # 保留此索引所对应的行
@@ -71,6 +73,7 @@ def multiclass_nms(multi_bboxes,
             roi_idns.append(i)
             i = i + 1
     filter_low_score_roi_feats = roi_feats[roi_idns]
+    filter_low_score_rois = rois[roi_idns]
     '''
     *********
     '''
@@ -126,7 +129,8 @@ def multiclass_nms(multi_bboxes,
     scores = dets[:, -1]  # soft_nms will modify scores
     labels = labels[keep]
     # 为了创建引用
-    final_roi_feats = None
+    final_roi_feats = filter_low_score_roi_feats
+    final_rois = filter_low_score_rois
     if keep.size(0) > max_num:
         # 保存前 max_num个框
         _, inds = scores.sort(descending=True)
@@ -135,8 +139,14 @@ def multiclass_nms(multi_bboxes,
         scores = scores[inds]
         labels = labels[inds]
         final_roi_feats = filter_low_score_roi_feats[inds]
-    save_path = "/content/mmdetection/Z108_roi_filter.pt"
+        final_rois = filter_low_score_rois[inds]
+
+    # 保存张量
+    save_path = "/content/mmdetection/Z108_filter_roi_feats.pt"
     torch.save(final_roi_feats,save_path)
+    save_path = "/content/mmdetection/Z108_filter_rois_filter.pt"
+    torch.save(final_rois,save_path)
+
     print()
     print("------------------------------------bbox_nms.py  2222---------------------------------")
     print("===max_coordinate:", max_coordinate)
@@ -153,6 +163,7 @@ def multiclass_nms(multi_bboxes,
     print("===labels:",labels.shape,labels)
     print("===bboxes:", bboxes.shape,bboxes)
     print("===final_roi_feats",final_roi_feats.shape)
+    print("===final_rois:",final_rois.shape)
     print("--------------------------------------------------------------------------------------")
     print()
     return torch.cat([bboxes, scores[:, None]], 1), labels
