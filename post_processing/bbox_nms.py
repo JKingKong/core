@@ -125,6 +125,7 @@ def multiclass_nms(multi_bboxes,
     bboxes = bboxes[keep]
     scores = dets[:, -1]  # soft_nms will modify scores
     labels = labels[keep]
+    # 为了创建引用
     final_roi_feats = roi_feats[0]
     if keep.size(0) > max_num:
         # 保存前 max_num个框
@@ -134,6 +135,7 @@ def multiclass_nms(multi_bboxes,
         scores = scores[inds]
         labels = labels[inds]
         final_roi_feats = filter_low_score_roi_feats[inds]
+    torch.save(final_roi_feats,pickle_protocol="/content/mmdetection/Z108_roi_filter.pt")
     print()
     print("------------------------------------bbox_nms.py  2222---------------------------------")
     print("===max_coordinate:", max_coordinate)
