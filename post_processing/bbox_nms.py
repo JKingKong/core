@@ -124,7 +124,7 @@ def multiclass_nms(multi_bboxes,
     print("===nms_op:", nms_op)
     print("--------")
     print("===dets:", dets)
-    print("===keep:", keep)
+    print("===keep(NMS的 inds):", keep)
     print("--------")
     print("===labels:",labels)
     print("===scores:", scores)
