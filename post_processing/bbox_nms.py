@@ -34,36 +34,46 @@ def multiclass_nms(multi_bboxes,
     # exclude background category
     #
     if multi_bboxes.shape[1] > 4:
-        # 前4个列算作背景类擦书,后边的是物体
+        # 前4个列算作背景类去掉,后边的是物体
+        # shape: [multi_bboxes数量,物体类数*4]
         bboxes = multi_bboxes.view(multi_scores.size(0), -1, 4)[:, 1:]
-        #print("=====bboxes = multi_bboxes.view(multi_scores.size(0), -1, 4)[:, 1:]:",bboxes.shape)
     else:
         bboxes = multi_bboxes[:, None].expand(-1, num_classes, 4)
 
     #去除第一列的背景分数, 保留的列是各类物体的分数
-    # (n,1)
+    # shape: [multi_bboxes数量,物体类数]
     scores = multi_scores[:, 1:]
 
     # filter out boxes with low scores
-    # 低分数过滤
-    # 过滤掉分数 < score_thr的行,valid_mask是一个[?,1]的，[[True],
-    #                                                         [False]
-    #                                                           ...
-    #                                                               ]
+    ''' 
+        # 低分数过滤
+        # 过滤掉分数 < score_thr的行
+        valid_mask打印：
+        tensor([[ True],
+                [ True],
+                [ True],
+                [False],
+        shape: [multi_bboxes数量,1]
+    '''
     valid_mask = scores > score_thr
+    # bboxes对应scores保留行
+    # shape: [过滤后保留行数,物体类数*4]
+    bboxes = bboxes[valid_mask]
+
+    '''
+    *********此处自己加上的
     # 保留对应的roi_feats
+    '''
     i = 0
-    filter_low_score_idns = []
+    roi_idns = [] # 保留此索引所对应的行
     for one_row in valid_mask:
         if(one_row[0] == True):
-            filter_low_score_idns.append(i)
+            roi_idns.append(i)
             i = i + 1
-    filter_low_score_roi_feats = roi_feats[filter_low_score_idns]
-
-    # bboxes对应scores保留行
-    bboxes = bboxes[valid_mask]
-    print("bboxes = bboxes[valid_mask]:", bboxes.shape)
-
+    filter_low_score_roi_feats = roi_feats[roi_idns]
+    '''
+    *********
+    '''
 
     if score_factors is not None:
         # 默认为空 不会执行 fcos_head.py的时候会用上
@@ -110,13 +120,13 @@ def multiclass_nms(multi_bboxes,
     nms_op = getattr(nms_wrapper, nms_type)
     # nms_op：NMS操作(具体注释,输入,输出格式 进入上边一行的nms_wrapper里看)
     # dets是NMS抑制后留下的bbox, keep是保留的行索引
+    # dets是转换为科学计数法之后的box矩阵
     dets, keep = nms_op(
         torch.cat([bboxes_for_nms, scores[:, None]], 1),  # 这个cat操作将bbox和score按列拼接到一起 (?,4) + (?,1) ---> (?,5)
         **nms_cfg_)
     bboxes = bboxes[keep]
     scores = dets[:, -1]  # soft_nms will modify scores
     labels = labels[keep]
-
     if keep.size(0) > max_num:
         # 保存前 max_num个框
         _, inds = scores.sort(descending=True)
@@ -124,7 +134,8 @@ def multiclass_nms(multi_bboxes,
         bboxes = bboxes[inds]
         scores = scores[inds]
         labels = labels[inds]
-        final_roi_feats = filter_low_score_roi_feats[inds]
+        filter_low_score_roi_feats = filter_low_score_roi_feats[inds]
+    final_roi_feats = filter_low_score_roi_feats
     print()
     print("------------------------------------bbox_nms.py  2222---------------------------------")
     print("===max_coordinate:", max_coordinate)
@@ -134,12 +145,12 @@ def multiclass_nms(multi_bboxes,
     print("===nms_type:", nms_type)
     print("===nms_op:", nms_op)
     print("--------")
-    print("===dets:", dets)
-    print("===keep(NMS的 inds):", keep)
+    print("===dets:", dets.shape, dets)
+    print("===keep(NMS的 inds):", keep.shape, keep)
     print("--------")
     print("===scores:", scores.shape, scores)
     print("===labels:",labels.shape,labels)
-    print("===bboxes:", bboxes.shape,labels)
+    print("===bboxes:", bboxes.shape,bboxes)
     print("===final_roi_feats",final_roi_feats.shape)
     print("--------------------------------------------------------------------------------------")
     print()
