@@ -36,23 +36,29 @@ def multiclass_nms(multi_bboxes,
     if multi_bboxes.shape[1] > 4:
         # 前4个列算作背景类擦书,后边的是物体
         bboxes = multi_bboxes.view(multi_scores.size(0), -1, 4)[:, 1:]
-        print("=====bboxes = multi_bboxes.view(multi_scores.size(0), -1, 4)[:, 1:]:",bboxes.shape)
+        #print("=====bboxes = multi_bboxes.view(multi_scores.size(0), -1, 4)[:, 1:]:",bboxes.shape)
     else:
         bboxes = multi_bboxes[:, None].expand(-1, num_classes, 4)
-    #去除第一列的背景分数,剩余的列是其余类的分数
+
+    #去除第一列的背景分数, 保留的列是各类物体的分数
     # (n,1)
     scores = multi_scores[:, 1:]
 
     # filter out boxes with low scores
-    # 过滤掉分数 < score_thr的行
+    # 低分数过滤
+    # 过滤掉分数 < score_thr的行,valid_mask是一个[?,1]的，[[True],
+    #                                                         [False]
+    #                                                           ...
+    #                                                               ]
     valid_mask = scores > score_thr
     # 保留对应的roi_feats
-    filter_roi_feats = roi_feats[0]
     i = 0
-    for one_row in scores:
-        if(one_row[0] > score_thr):
-            filter_roi_feats = torch.cat((filter_roi_feats,roi_feats[i]),dim=0)
+    filter_low_score_idns = []
+    for one_row in valid_mask:
+        if(one_row[0] == True):
+            filter_low_score_idns.append(i)
             i = i + 1
+    filter_low_score_roi_feats = roi_feats[filter_low_score_idns]
 
     # bboxes对应scores保留行
     bboxes = bboxes[valid_mask]
@@ -87,7 +93,7 @@ def multiclass_nms(multi_bboxes,
     print("===multi_scores:", multi_scores.shape)
     print("====roi_feats[0]:",roi_feats[0].shape)
     print("===roi_feats:",roi_feats.shape)
-    print("===filter_roi_feats",filter_roi_feats.shape)
+    print("===filter_low_score_roi_feats",filter_low_score_roi_feats.shape)
     print()
     print("===valid_mask:", valid_mask.shape)
     print(valid_mask)
@@ -118,6 +124,7 @@ def multiclass_nms(multi_bboxes,
         bboxes = bboxes[inds]
         scores = scores[inds]
         labels = labels[inds]
+        final_roi_feats = filter_low_score_roi_feats[inds]
     print()
     print("------------------------------------bbox_nms.py  2222---------------------------------")
     print("===max_coordinate:", max_coordinate)
