@@ -126,7 +126,7 @@ def multiclass_nms(multi_bboxes,
     scores = dets[:, -1]  # soft_nms will modify scores
     labels = labels[keep]
     # 为了创建引用
-    final_roi_feats = roi_feats[0]
+    final_roi_feats = None
     if keep.size(0) > max_num:
         # 保存前 max_num个框
         _, inds = scores.sort(descending=True)
