@@ -106,7 +106,6 @@ def multiclass_nms(multi_bboxes,
     print("===filter_low_score_roi_feats",filter_low_score_roi_feats.shape)
     print()
     print("===valid_mask:", valid_mask.shape)
-    print(valid_mask)
     print("===bboxes:", bboxes.shape)
     print("===labels:", labels.shape)
     print(labels)
