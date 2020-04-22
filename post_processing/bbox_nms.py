@@ -137,9 +137,10 @@ def multiclass_nms(multi_bboxes,
     print("===dets:", dets)
     print("===keep(NMS的 inds):", keep)
     print("--------")
-    print("===labels:",labels)
-    print("===scores:", scores)
-    print("===bboxes:", bboxes)
+    print("===scores:", scores.shape, scores)
+    print("===labels:",labels.shape,labels)
+    print("===bboxes:", bboxes.shape,labels)
+    print("===final_roi_feats",final_roi_feats.shape)
     print("--------------------------------------------------------------------------------------")
     print()
     return torch.cat([bboxes, scores[:, None]], 1), labels
