@@ -36,6 +36,7 @@ def multiclass_nms(multi_bboxes,
     if multi_bboxes.shape[1] > 4:
         # 前4个列算作背景类擦书,后边的是物体
         bboxes = multi_bboxes.view(multi_scores.size(0), -1, 4)[:, 1:]
+        print("=====bboxes = multi_bboxes.view(multi_scores.size(0), -1, 4)[:, 1:]:",bboxes.shape)
     else:
         bboxes = multi_bboxes[:, None].expand(-1, num_classes, 4)
     #去除第一列的背景分数,剩余的列是其余类的分数
@@ -66,7 +67,7 @@ def multiclass_nms(multi_bboxes,
     labels = valid_mask.nonzero()[:, 1]
 
     if bboxes.numel() == 0:
-        # bboxes数为0时
+        # bboxes数为0时 才会执行这里
         bboxes = multi_bboxes.new_zeros((0, 5))
         labels = multi_bboxes.new_zeros((0, ), dtype=torch.long)
         return bboxes, labels
@@ -83,6 +84,7 @@ def multiclass_nms(multi_bboxes,
     print("------------------------------------bbox_nms.py  1111---------------------------------")
     print("===multi_bboxes:", multi_bboxes.shape)
     print("===multi_scores:", multi_scores.shape)
+    print("====roi_feats[0]:",roi_feats[0].shape)
     print("===roi_feats:",roi_feats.shape)
     print("===filter_roi_feats",filter_roi_feats.shape)
     print()
