@@ -135,7 +135,8 @@ def multiclass_nms(multi_bboxes,
         scores = scores[inds]
         labels = labels[inds]
         final_roi_feats = filter_low_score_roi_feats[inds]
-    torch.save(final_roi_feats,pickle_protocol="/content/mmdetection/Z108_roi_filter.pt")
+    save_path = "/content/mmdetection/Z108_roi_filter.pt"
+    torch.save(final_roi_feats,save_path)
     print()
     print("------------------------------------bbox_nms.py  2222---------------------------------")
     print("===max_coordinate:", max_coordinate)
