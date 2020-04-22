@@ -108,7 +108,6 @@ def multiclass_nms(multi_bboxes,
     print("===valid_mask:", valid_mask.shape)
     print("===bboxes:", bboxes.shape)
     print("===labels:", labels.shape)
-    print(labels)
     print("--------------------------------------------------------------------------------------")
     print()
     max_coordinate = bboxes.max()
@@ -126,6 +125,7 @@ def multiclass_nms(multi_bboxes,
     bboxes = bboxes[keep]
     scores = dets[:, -1]  # soft_nms will modify scores
     labels = labels[keep]
+    final_roi_feats = roi_feats[0]
     if keep.size(0) > max_num:
         # 保存前 max_num个框
         _, inds = scores.sort(descending=True)
@@ -133,8 +133,7 @@ def multiclass_nms(multi_bboxes,
         bboxes = bboxes[inds]
         scores = scores[inds]
         labels = labels[inds]
-        filter_low_score_roi_feats = filter_low_score_roi_feats[inds]
-    final_roi_feats = filter_low_score_roi_feats
+        final_roi_feats = filter_low_score_roi_feats[inds]
     print()
     print("------------------------------------bbox_nms.py  2222---------------------------------")
     print("===max_coordinate:", max_coordinate)
