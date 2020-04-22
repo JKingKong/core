@@ -56,6 +56,7 @@ def multiclass_nms(multi_bboxes,
 
     # bboxes对应scores保留行
     bboxes = bboxes[valid_mask]
+    print("bboxes = bboxes[valid_mask]:", bboxes.shape)
 
 
     if score_factors is not None:
@@ -89,6 +90,7 @@ def multiclass_nms(multi_bboxes,
     print("===filter_roi_feats",filter_roi_feats.shape)
     print()
     print("===valid_mask:", valid_mask.shape)
+    print(valid_mask)
     print("===bboxes:", bboxes.shape)
     print("===labels:", labels.shape)
     print(labels)
@@ -117,7 +119,7 @@ def multiclass_nms(multi_bboxes,
         scores = scores[inds]
         labels = labels[inds]
     print()
-    print("------------------------------------bbox_nms.py  1111---------------------------------")
+    print("------------------------------------bbox_nms.py  2222---------------------------------")
     print("===max_coordinate:", max_coordinate)
     print("===offsets:", offsets)
     print("===bboxes_for_nms:", bboxes_for_nms)
