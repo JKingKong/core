@@ -124,17 +124,17 @@ def force_fp32(apply_to=None, out_fp16=False):
                 raise TypeError('@force_fp32 can only be used to decorate the '
                                 'method of nn.Module')
             if not (hasattr(args[0], 'fp16_enabled') and args[0].fp16_enabled):
-                import sys
-                print()
-                print("===================****************=====================")
-                print("--- current function from ", sys._getframe().f_code.co_filename)
-                print("--- current function is      ", sys._getframe().f_code.co_name)
-                print()
-                print("--- called from file           ", sys._getframe().f_back.f_code.co_filename)
-                print("--- called by function      ", sys._getframe().f_back.f_code.co_name)
-                print("--- called at line               ", sys._getframe().f_back.f_lineno)
-                print("===================****************=====================")
-                print()
+                # import sys
+                # print()
+                # print("===================****************=====================")
+                # print("--- current function from ", sys._getframe().f_code.co_filename)
+                # print("--- current function is      ", sys._getframe().f_code.co_name)
+                # print()
+                # print("--- called from file           ", sys._getframe().f_back.f_code.co_filename)
+                # print("--- called by function      ", sys._getframe().f_back.f_code.co_name)
+                # print("--- called at line               ", sys._getframe().f_back.f_lineno)
+                # print("===================****************=====================")
+                # print()
                 return old_func(*args, **kwargs)
             # get the arg spec of the decorated method
             args_info = getfullargspec(old_func)
