@@ -154,17 +154,17 @@ def multiclass_nms(multi_bboxes,
 
 
 
-    # 保存张量
-    root_path = "/content/mmdetection/"
-    picture_name = "Z108"
-    save_path = root_path + picture_name + "_filter_final_roi_feats.pt"
-    torch.save(final_roi_feats,save_path)
-    save_path = root_path + picture_name + "_filter_final_rois.pt"
-    torch.save(final_rois,save_path)
-    save_path = root_path + picture_name + "_filter_final_bbox_pred.pt"
-    torch.save(final_bbox_pred,save_path)
-    save_path = root_path + picture_name + "_filter_final_cls_score.pt"
-    torch.save(final_cls_score,save_path)
+    # # 保存张量
+    # root_path = "/content/mmdetection/"
+    # picture_name = "Z108"
+    # save_path = root_path + picture_name + "_filter_final_roi_feats.pt"
+    # torch.save(final_roi_feats,save_path)
+    # save_path = root_path + picture_name + "_filter_final_rois.pt"
+    # torch.save(final_rois,save_path)
+    # save_path = root_path + picture_name + "_filter_final_bbox_pred.pt"
+    # torch.save(final_bbox_pred,save_path)
+    # save_path = root_path + picture_name + "_filter_final_cls_score.pt"
+    # torch.save(final_cls_score,save_path)
 
     #
     # print()
