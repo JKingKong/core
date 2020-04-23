@@ -64,23 +64,6 @@ def multiclass_nms(multi_bboxes,
     # shape: [过滤后保留行数,物体类数*4]
     bboxes = bboxes[valid_mask]
 
-    '''
-    *********此处自己加上的  
-    # 过滤低分数的框后保留对应的roi_feats、roi
-    '''
-    i = 0
-    idns = [] # 保留此索引所对应的行
-    for one_row in valid_mask:
-        if(one_row[0] == True):
-            idns.append(i)
-            i = i + 1
-    filter_low_score_roi_feats = roi_feats[idns]
-    filter_low_score_rois = rois[idns]
-    filter_low_score_bbox_pred = bbox_pred[idns]
-    filter_low_score_cls_score = cls_score[idns]
-    '''
-    *********
-    '''
 
     if score_factors is not None:
         # 默认为空 不会执行 fcos_head.py的时候会用上
@@ -134,12 +117,8 @@ def multiclass_nms(multi_bboxes,
     scores = dets[:, -1]  # soft_nms will modify scores
     labels = labels[keep]
 
-    # 为了创建引用
-    final_roi_feats = filter_low_score_roi_feats
-    final_rois = filter_low_score_rois
-    final_bbox_pred = filter_low_score_bbox_pred
-    final_cls_score = filter_low_score_cls_score
 
+    top_max_inds = None
     if keep.size(0) > max_num:
         # 保存前 max_num个框
         _, inds = scores.sort(descending=True)
@@ -147,24 +126,18 @@ def multiclass_nms(multi_bboxes,
         bboxes = bboxes[inds]
         scores = scores[inds]
         labels = labels[inds]
-        final_roi_feats = filter_low_score_roi_feats[inds]
-        final_rois = filter_low_score_rois[inds]
-        final_bbox_pred = filter_low_score_bbox_pred[inds]
-        final_cls_score = filter_low_score_cls_score[inds]
+        top_max_inds = inds
 
+    if roi_feats is not None:
+        # 自定义函数
+        # 保存最后识别的框 和 特征
+        get_final_area(valid_mask,
+                       roi_feats, # 新加入的参数   为了得到预测框所对应的map
+                       rois,
+                       bbox_pred,
+                       cls_score,
+                       top_max_inds)
 
-
-    # # 保存张量
-    # root_path = "/content/mmdetection/"
-    # picture_name = "Z108"
-    # save_path = root_path + picture_name + "_filter_final_roi_feats.pt"
-    # torch.save(final_roi_feats,save_path)
-    # save_path = root_path + picture_name + "_filter_final_rois.pt"
-    # torch.save(final_rois,save_path)
-    # save_path = root_path + picture_name + "_filter_final_bbox_pred.pt"
-    # torch.save(final_bbox_pred,save_path)
-    # save_path = root_path + picture_name + "_filter_final_cls_score.pt"
-    # torch.save(final_cls_score,save_path)
 
     #
     # print()
@@ -188,3 +161,57 @@ def multiclass_nms(multi_bboxes,
     # print()
 
     return torch.cat([bboxes, scores[:, None]], 1), labels
+
+def get_final_area(valid_mask = None,  # 过滤掉低分
+                   roi_feats = None,   # 新加入的参数   为了得到预测框所对应的map
+                   rois = None,
+                   bbox_pred = None,
+                   cls_score = None,
+                   top_max_inds = None # 根据参数保留前top_max个框
+                   ):
+
+    # 自定义函数
+    # 保存最后识别的框 和 特征
+
+    '''
+    *********此处自己加上的
+    # 过滤低分数的框后保留对应的roi_feats、roi
+    '''
+    i = 0
+    idns = [] # 保留此索引所对应的行
+    for one_row in valid_mask:
+        if(one_row[0] == True):
+            idns.append(i)
+            i = i + 1
+    filter_low_score_roi_feats = roi_feats[idns]
+    filter_low_score_rois = rois[idns]
+    filter_low_score_bbox_pred = bbox_pred[idns]
+    filter_low_score_cls_score = cls_score[idns]
+    '''
+    *********
+    '''
+
+    # 为了创建引用
+    final_roi_feats = filter_low_score_roi_feats
+    final_rois = filter_low_score_rois
+    final_bbox_pred = filter_low_score_bbox_pred
+    final_cls_score = filter_low_score_cls_score
+
+    if top_max_inds is not None:
+        final_roi_feats = filter_low_score_roi_feats[top_max_inds]
+        final_rois = filter_low_score_rois[top_max_inds]
+        final_bbox_pred = filter_low_score_bbox_pred[top_max_inds]
+        final_cls_score = filter_low_score_cls_score[top_max_inds]
+
+
+    # 保存张量
+    root_path = "/content/mmdetection/"
+    picture_name = "Z108"
+    save_path = root_path + picture_name + "_filter_final_roi_feats.pt"
+    torch.save(final_roi_feats,save_path)
+    save_path = root_path + picture_name + "_filter_final_rois.pt"
+    torch.save(final_rois,save_path)
+    save_path = root_path + picture_name + "_filter_final_bbox_pred.pt"
+    torch.save(final_bbox_pred,save_path)
+    save_path = root_path + picture_name + "_filter_final_cls_score.pt"
+    torch.save(final_cls_score,save_path)
